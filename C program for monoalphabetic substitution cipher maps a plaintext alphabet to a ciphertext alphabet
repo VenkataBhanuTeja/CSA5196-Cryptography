@@ -1,0 +1,49 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+void monoalphabeticSubstitution(char message[], char key[]) {
+    int i;
+    char encryptedMessage[100];
+
+    for (i = 0; i < strlen(message); i++) {
+      
+        if (isalpha(message[i])) {
+            
+            char base = isupper(message[i]) ? 'A' : 'a';
+
+            encryptedMessage[i] = key[message[i] - base];
+        } else {
+        
+            encryptedMessage[i] = message[i];
+        }
+    }
+
+    encryptedMessage[i] = '\0';
+
+    printf("Encrypted message: %s\n", encryptedMessage);
+}
+
+int main() {
+    char message[100];
+    char key[26]; 
+
+    printf("Enter a message to encrypt: ");
+    fgets(message, sizeof(message), stdin);
+
+    message[strcspn(message, "\n")] = 0;
+
+    printf("Enter the substitution key (ciphertext alphabet): ");
+    fgets(key, sizeof(key), stdin);
+
+    key[strcspn(key, "\n")] = 0;
+
+    if (strlen(key) != 26) {
+        printf("Error: Key must be a permutation of the alphabet (26 letters).\n");
+        return 1; 
+    }
+
+    monoalphabeticSubstitution(message, key);
+
+    return 0;
+}
