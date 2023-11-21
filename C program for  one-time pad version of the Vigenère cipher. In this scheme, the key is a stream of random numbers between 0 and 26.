@@ -1,0 +1,53 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <time.h>
+
+void generateKey(int length, int key[]) {
+    srand(time(NULL)); 
+
+    for (int i = 0; i < length; ++i) {
+        key[i] = rand() % 26; 
+    }
+}
+
+char vigenereOneTimePadEncrypt(char ch, int key) {
+    if (isalpha(ch)) {
+        char base = isupper(ch) ? 'A' : 'a';
+        return (ch - base + key) % 26 + base;
+    }
+    return ch;
+}
+
+void vigenereOneTimePadEncryptMessage(char *plaintext, int key[], char *ciphertext) {
+    int keyLength = strlen(plaintext);
+    for (int i = 0; plaintext[i] != '\0'; ++i) {
+        ciphertext[i] = vigenereOneTimePadEncrypt(plaintext[i], key[i % keyLength]);
+    }
+}
+
+int main() {
+    char plaintext[1000];
+    int key[1000];
+    char ciphertext[1000];
+
+    printf("Enter the plaintext: ");
+    fgets(plaintext, sizeof(plaintext), stdin);
+    strtok(plaintext, "\n"); 
+
+    int plaintextLength = strlen(plaintext);
+    generateKey(plaintextLength, key);
+
+    vigenereOneTimePadEncryptMessage(plaintext, key, ciphertext);
+
+    printf("Key stream: ");
+    for (int i = 0; i < plaintextLength; ++i) {
+        printf("%d ", key[i]);
+    }
+    printf("\n");
+
+    printf("Encrypted message: %s\n", ciphertext);
+
+    return 0;
+}
