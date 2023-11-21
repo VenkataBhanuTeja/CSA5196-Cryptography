@@ -1,0 +1,94 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define ALPHABET_SIZE 26
+
+// Function to calculate the frequency of each letter in the text
+void calculateFrequency(char *text, double *frequency) {
+    int i, total = 0;
+
+    for (i = 0; i < strlen(text); i++) {
+        if (text[i] >= 'A' && text[i] <= 'Z') {
+            frequency[text[i] - 'A']++;
+            total++;
+        } else if (text[i] >= 'a' && text[i] <= 'z') {
+            frequency[text[i] - 'a']++;
+            total++;
+        }
+    }
+
+    // Convert frequencies to probabilities
+    for (i = 0; i < ALPHABET_SIZE; i++) {
+        frequency[i] /= total;
+    }
+}
+
+// Function to decrypt the ciphertext using a given key
+void decrypt(char *ciphertext, char *key, char *plaintext) {
+    int i;
+
+    for (i = 0; i < strlen(ciphertext); i++) {
+        if (ciphertext[i] >= 'A' && ciphertext[i] <= 'Z') {
+            plaintext[i] = key[ciphertext[i] - 'A'];
+        } else if (ciphertext[i] >= 'a' && ciphertext[i] <= 'z') {
+            plaintext[i] = key[ciphertext[i] - 'a'];
+        } else {
+            plaintext[i] = ciphertext[i]; // Non-alphabetic characters remain unchanged
+        }
+    }
+    plaintext[i] = '\0';
+}
+
+// Function to perform a letter frequency attack
+void letterFrequencyAttack(char *ciphertext) {
+    char key[ALPHABET_SIZE];
+    char plaintext[1000];
+    double frequency[ALPHABET_SIZE] = {0};
+    int i, j;
+
+    // Initialize the key with the default mapping
+    for (i = 0; i < ALPHABET_SIZE; i++) {
+        key[i] = 'A' + i;
+    }
+    key[i] = '\0';
+
+    // Calculate the letter frequency of the ciphertext
+    calculateFrequency(ciphertext, frequency);
+
+    // Sort the key based on the frequency of letters in the ciphertext
+    for (i = 0; i < ALPHABET_SIZE - 1; i++) {
+        for (j = 0; j < ALPHABET_SIZE - i - 1; j++) {
+            if (frequency[j] < frequency[j + 1]) {
+                // Swap key elements
+                char temp = key[j];
+                key[j] = key[j + 1];
+                key[j + 1] = temp;
+
+                // Swap frequency elements
+                double tempFreq = frequency[j];
+                frequency[j] = frequency[j + 1];
+                frequency[j + 1] = tempFreq;
+            }
+        }
+    }
+
+    // Decrypt the ciphertext using the sorted key
+    decrypt(ciphertext, key, plaintext);
+
+    // Print the decrypted plaintext
+    printf("Decrypted plaintext:\n%s\n", plaintext);
+}
+
+int main() {
+    char ciphertext[1000];
+
+    printf("Enter the ciphertext: ");
+    fgets(ciphertext, sizeof(ciphertext), stdin);
+    ciphertext[strcspn(ciphertext, "\n")] = '\0'; // Remove the newline character
+
+    // Perform letter frequency attack
+    letterFrequencyAttack(ciphertext);
+
+    return 0;
+}
