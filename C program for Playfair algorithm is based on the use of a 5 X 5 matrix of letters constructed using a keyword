@@ -1,0 +1,73 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#define SIZE 5
+
+// Function to initialize the Playfair matrix based on the key
+void initializePlayfairMatrix(char key[], char playfairMatrix[SIZE][SIZE]) {
+    char matrix[SIZE][SIZE];
+    char *keyPtr = key;
+    int i, j, k, len;
+
+    // Fill the matrix with unique characters from the key
+    for (i = 0; i < SIZE; i++) {
+        for (j = 0; j < SIZE; j++) {
+            matrix[i][j] = *keyPtr;
+            keyPtr++;
+            while (strchr(key, matrix[i][j]) != NULL) {
+                keyPtr++;
+            }
+        }
+    }
+
+    // Fill the remaining matrix with the remaining characters of the alphabet
+    char letter = 'A';
+    for (i = 0; i < SIZE; i++) {
+        for (j = 0; j < SIZE; j++) {
+            if (!strchr(key, letter)) {
+                matrix[i][j] = letter;
+                letter++;
+                if (letter == 'J') {
+                    letter++; // Skip 'J'
+                }
+            }
+        }
+    }
+
+    // Copy the matrix to the playfairMatrix
+    for (i = 0; i < SIZE; i++) {
+        for (j = 0; j < SIZE; j++) {
+            playfairMatrix[i][j] = matrix[i][j];
+        }
+    }
+}
+
+// Function to find the row and column of a character in the Playfair matrix
+void findCharInMatrix(char ch, char playfairMatrix[SIZE][SIZE], int *row, int *col) {
+    if (ch == 'J') {
+        ch = 'I';
+    }
+
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (playfairMatrix[i][j] == ch) {
+                *row = i;
+                *col = j;
+                return;
+            }
+        }
+    }
+}
+
+// Function to encrypt a digraph using the Playfair cipher
+void encryptDigraph(char digraph[2], char playfairMatrix[SIZE][SIZE], char encrypted[2]) {
+    int row1, col1, row2, col2;
+    findCharInMatrix(digraph[0], playfairMatrix, &row1, &col1);
+    findCharInMatrix(digraph[1], playfairMatrix, &row2, &col2);
+
+    if (row1 == row2) {
+        // Same row, shift columns to the right
+        encrypted[0] = playfairMatrix[row1][(col1 + 1) % SIZE];
+        encrypted[1] = playfairMatrix
