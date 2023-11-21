@@ -1,0 +1,128 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+#define SIZE 5
+
+// Function to initialize the Playfair matrix based on the key
+void initializePlayfairMatrix(char key[], char playfairMatrix[SIZE][SIZE]) {
+    char *keyPtr = key;
+    char matrix[SIZE][SIZE];
+    int i, j, k, len;
+
+    // Initialize the matrix with unique characters from the key
+    for (i = 0; i < SIZE; i++) {
+        for (j = 0; j < SIZE; j++) {
+            matrix[i][j] = *keyPtr;
+            keyPtr++;
+            while (strchr(key, matrix[i][j]) != NULL) {
+                keyPtr++;
+            }
+            if (matrix[i][j] == 'J') {
+                matrix[i][j] = 'I';
+            }
+        }
+    }
+
+    // Fill the remaining matrix with the remaining characters of the alphabet
+    char letter = 'A';
+    for (i = 0; i < SIZE; i++) {
+        for (j = 0; j < SIZE; j++) {
+            if (!strchr(key, letter)) {
+                matrix[i][j] = letter;
+                letter++;
+                if (letter == 'J') {
+                    letter++; // Skip 'J'
+                }
+            }
+        }
+    }
+
+    // Copy the matrix to the playfairMatrix
+    for (i = 0; i < SIZE; i++) {
+        for (j = 0; j < SIZE; j++) {
+            playfairMatrix[i][j] = matrix[i][j];
+        }
+    }
+}
+
+// Function to find the row and column of a character in the Playfair matrix
+void findCharInMatrix(char ch, char playfairMatrix[SIZE][SIZE], int *row, int *col) {
+    if (ch == 'J') {
+        ch = 'I';
+    }
+
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (playfairMatrix[i][j] == ch) {
+                *row = i;
+                *col = j;
+                return;
+            }
+        }
+    }
+}
+
+// Function to encrypt a digraph using the Playfair cipher
+void encryptDigraph(char digraph[2], char playfairMatrix[SIZE][SIZE], char encrypted[2]) {
+    int row1, col1, row2, col2;
+    findCharInMatrix(digraph[0], playfairMatrix, &row1, &col1);
+    findCharInMatrix(digraph[1], playfairMatrix, &row2, &col2);
+
+    if (row1 == row2) {
+        // Same row, shift columns to the right
+        encrypted[0] = playfairMatrix[row1][(col1 + 1) % SIZE];
+        encrypted[1] = playfairMatrix[row2][(col2 + 1) % SIZE];
+    } else if (col1 == col2) {
+        // Same column, shift rows down
+        encrypted[0] = playfairMatrix[(row1 + 1) % SIZE][col1];
+        encrypted[1] = playfairMatrix[(row2 + 1) % SIZE][col2];
+    } else {
+        // Form a rectangle, replace each letter with the letter in the same row but opposite column
+        encrypted[0] = playfairMatrix[row1][col2];
+        encrypted[1] = playfairMatrix[row2][col1];
+    }
+}
+
+// Function to encrypt a message using the Playfair cipher
+void playfairEncrypt(char *plaintext, char key[], char *ciphertext) {
+    char playfairMatrix[SIZE][SIZE];
+    initializePlayfairMatrix(key, playfairMatrix);
+
+    for (int i = 0; plaintext[i] != '\0'; i += 2) {
+        char digraph[2] = {toupper(plaintext[i]), '\0'};
+        if (plaintext[i + 1] != '\0') {
+            digraph[1] = toupper(plaintext[i + 1]);
+        } else {
+            digraph[1] = 'X';
+        }
+
+        char encrypted[2];
+        encryptDigraph(digraph, playfairMatrix, encrypted);
+        strcat(ciphertext, encrypted);
+    }
+}
+
+int main() {
+    char plaintext[1000];
+    char key[100];
+    char ciphertext[1000] = "";
+
+    // Input the plaintext
+    printf("Enter the plaintext: ");
+    fgets(plaintext, sizeof(plaintext), stdin);
+    strtok(plaintext, "\n"); // Remove newline character
+
+    // Input the key
+    printf("Enter the key: ");
+    fgets(key, sizeof(key), stdin);
+    strtok(key, "\n"); // Remove newline character
+
+    // Encrypt the plaintext using the Playfair cipher
+    playfairEncrypt(plaintext, key, ciphertext);
+
+    // Display the encrypted message
+    printf("Encrypted message: %s\n", ciphertext);
+
+    return 0;
+}
