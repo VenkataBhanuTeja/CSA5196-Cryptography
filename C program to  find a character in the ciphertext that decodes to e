@@ -1,0 +1,100 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+#define SIZE 5
+
+// Function to initialize the Playfair matrix based on the key
+void initializePlayfairMatrix(char key[], char playfairMatrix[SIZE][SIZE]) {
+    // (Same as before)
+    // ...
+}
+
+// Function to find the row and column of a character in the Playfair matrix
+void findCharInMatrix(char ch, char playfairMatrix[SIZE][SIZE], int *row, int *col) {
+    // (Same as before)
+    // ...
+}
+
+// Function to encrypt a digraph using the Playfair cipher
+void encryptDigraph(char digraph[2], char playfairMatrix[SIZE][SIZE], char encrypted[2]) {
+    // (Same as before)
+    // ...
+}
+
+// Function to preprocess the plaintext by removing non-alphabetic characters and handling 'J'
+void preprocessPlaintext(char *plaintext) {
+    // (Same as before)
+    // ...
+}
+
+// Function to perform frequency analysis on the ciphertext
+char findMostFrequentCharacter(char *ciphertext) {
+    int frequency[26] = {0};
+
+    // Count the frequency of each letter in the ciphertext
+    for (int i = 0; ciphertext[i] != '\0'; ++i) {
+        if (isalpha(ciphertext[i])) {
+            frequency[toupper(ciphertext[i]) - 'A']++;
+        }
+    }
+
+    // Find the index of the maximum frequency
+    int maxFreqIndex = 0;
+    for (int i = 1; i < 26; ++i) {
+        if (frequency[i] > frequency[maxFreqIndex]) {
+            maxFreqIndex = i;
+        }
+    }
+
+    // Convert the index to the corresponding character
+    char mostFrequentChar = 'A' + maxFreqIndex;
+    return mostFrequentChar;
+}
+
+int main() {
+    char plaintext[1000];
+    char key[100];
+    char playfairMatrix[SIZE][SIZE];
+    char ciphertext[1000] = "";
+
+    // Input the plaintext
+    printf("Enter the plaintext: ");
+    fgets(plaintext, sizeof(plaintext), stdin);
+    strtok(plaintext, "\n"); // Remove newline character
+
+    // Input the key
+    printf("Enter the key: ");
+    fgets(key, sizeof(key), stdin);
+    strtok(key, "\n"); // Remove newline character
+
+    // Preprocess the plaintext
+    preprocessPlaintext(plaintext);
+
+    // Initialize the Playfair matrix
+    initializePlayfairMatrix(key, playfairMatrix);
+
+    // Encrypt the plaintext using the Playfair cipher
+    for (int i = 0; plaintext[i] != '\0'; i += 2) {
+        char digraph[2] = {plaintext[i], '\0'};
+        if (plaintext[i + 1] != '\0') {
+            digraph[1] = plaintext[i + 1];
+        } else {
+            digraph[1] = 'X';
+        }
+
+        char encrypted[2];
+        encryptDigraph(digraph, playfairMatrix, encrypted);
+        strcat(ciphertext, encrypted);
+    }
+
+    // Display the encrypted message
+    printf("Encrypted message: %s\n", ciphertext);
+
+    // Perform frequency analysis to find the character that likely represents 'e'
+    char mostFrequentChar = findMostFrequentCharacter(ciphertext);
+    printf("The character that likely represents 'e' is: %c\n", mostFrequentChar);
+
+    return 0;
+}
