@@ -1,0 +1,67 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <openssl/aes.h>
+
+#define AES_BLOCK_SIZE 16
+
+void encrypt_cbc(const unsigned char *plaintext, const unsigned char *key, const unsigned char *iv, unsigned char *ciphertext, size_t length) {
+    AES_KEY aes_key;
+    AES_set_encrypt_key(key, 128, &aes_key);
+
+    unsigned char previous_block[AES_BLOCK_SIZE];
+    memcpy(previous_block, iv, AES_BLOCK_SIZE);
+
+    for (size_t i = 0; i < length; i += AES_BLOCK_SIZE) {
+        unsigned char block[AES_BLOCK_SIZE];
+        memcpy(block, plaintext + i, AES_BLOCK_SIZE);
+
+        // XOR the plaintext block with the previous ciphertext block (or IV for the first block)
+        for (int j = 0; j < AES_BLOCK_SIZE; ++j) {
+            block[j] ^= previous_block[j];
+        }
+
+        AES_encrypt(block, ciphertext + i, &aes_key);
+
+        // Update the previous block with the current ciphertext block
+        memcpy(previous_block, ciphertext + i, AES_BLOCK_SIZE);
+    }
+}
+
+int main() {
+    // Key and IV (Initialization Vector) for AES-128
+    const unsigned char key[] = "0123456789abcdef";
+    const unsigned char iv[] = "abcdef9876543210";
+
+    // Input plaintext
+    const char *plaintext = "Hello, CBC mode!";
+
+    // Determine the length of the plaintext
+    size_t length = strlen(plaintext);
+
+    // Pad the plaintext to be a multiple of the block size
+    size_t padded_length = (length / AES_BLOCK_SIZE + 1) * AES_BLOCK_SIZE;
+    unsigned char *padded_plaintext = (unsigned char *)malloc(padded_length);
+    memset(padded_plaintext, 0, padded_length);
+    memcpy(padded_plaintext, plaintext, length);
+
+    // Allocate space for the ciphertext
+    unsigned char *ciphertext = (unsigned char *)malloc(padded_length);
+
+    // Perform encryption
+    encrypt_cbc(padded_plaintext, key, iv, ciphertext, padded_length);
+
+    // Display the encrypted data
+    printf("Plaintext: %s\n", plaintext);
+    printf("Ciphertext: ");
+    for (size_t i = 0; i < padded_length; ++i) {
+        printf("%02x", ciphertext[i]);
+    }
+    printf("\n");
+
+    // Free allocated memory
+    free(padded_plaintext);
+    free(ciphertext);
+
+    return 0;
+}
